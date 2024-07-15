@@ -1,102 +1,89 @@
-use std::fs;
-use std::env;
+use std::{env, fs, io};
 
-struct PuzzleInput {
-    // load input from file system
-    puzzle_input: String
+enum PuzzlePart {
+    ONE,
+    TWO
 }
 
-impl PuzzleInput {
-    fn new(day: u32) -> Self {
-        let current_dir = env::current_dir().unwrap();
-        let file_name = "day".to_owned() + &day.to_string() + &".txt";
-        let file_path = "static/inputs/".to_owned() + &file_name;
+trait Solveable {
+    fn solve(&self, part: &Puzzle) -> String;
+}
 
-        let file_path = current_dir.join(file_path);
-        println!("Trying to read file from {}.", file_path.display());
-        let puzzle_input = fs::read_to_string(file_path).expect("Unable to get read puzzle input file!");
+struct Puzzle {
+    day: i16,
+    text: String,
+}
 
-        PuzzleInput { puzzle_input }
+impl Puzzle {
+    pub fn from_puzzle_file(day: i16) -> Result<Self, io::Error> {
+        let path = env::current_dir()?
+            .join("static")
+            .join("inputs")
+            .join("day".to_string() + &day.to_string() + &".txt");
+
+        let text = fs::read_to_string(path)?;
+        Ok(Self { day, text })
     }
 }
 
-enum PuzzleType {
-    PartOne,
-    PartTwo,
+struct Day01 {
+    puzzle: Puzzle
 }
 
-trait Puzzle {
-    fn new() -> Self;
-    fn solve(&self, puzzle_type: PuzzleType);
+impl Solveable for Day01 {
+    fn solve(&self, part: &Puzzle) -> String {
+        String::from("puzzle1")
+    }
 }
 
-struct DayOne {
-    day: u32,
+struct Day02 {
+    puzzle: Puzzle
 }
 
-impl DayOne {
+impl Solveable for Day02 {
+    fn solve(&self, part: &Puzzle) -> String {
+        String::from("puzzle2")
+    }
+}
 
-    fn get_fuel_required_using_mass(mass: i32) -> i32 {
-        let div = mass as f32 / 3.0;
-        let fuel_required = div.floor() as i32 - 2;
+enum Day {
+    One(Day01),
+    Two(Day02)
+}
+
+type SolveResult = (Option<String>, Option<String>);
+type Solver = fn(&Puzzle) -> SolveResult;
+
+fn solve_day_one(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
+    (None, None)
+}
+
+fn solve_day_two(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
+    (None, None)
+}
+
+fn main() -> Result<(), io::Error>{
+
+    // if no arguments are passed then run all
+
+    // else only execute the days passed via the command line
+
+    let solvers: Vec<Solver> = vec![
+        solve_day_one,
+        solve_day_two
+    ];
+    let day_range = 1..=2;
+
+    for (day, solver) in day_range.zip(solvers) {
+        let puzzle = Puzzle::from_puzzle_file(day)?;
         
-        fuel_required
-    }
-
-    fn get_fuel_required_using_mass_bonus(mass: i32) -> i32 {
-        // fuel now also requires fuel so we keep rounding down
-        // until we're at 0
-        let mut total_fuel_required = 0;
-        let mut current_mas = mass;
-
-        loop {
-            let div = current_mas as f32 / 3.0;
-            let fuel_required = div.floor() as i32 - 2;
-            
-            if fuel_required <= 0 {
-                break 
-            }
-            total_fuel_required += fuel_required;
-            current_mas = fuel_required;
-        }
-
-        total_fuel_required
-    }
-}
-
-impl Puzzle for DayOne {
-    fn new() -> Self {
-        DayOne{ day: 1 }
-    }
-
-    fn solve(&self, puzzle_type: PuzzleType) {
-        let input = PuzzleInput::new(self.day);
-
-        match puzzle_type {
-            PuzzleType::PartOne => {
-                let fuel_sum: i32 = input.puzzle_input.split('\n')
-                    .map(|x| x.parse::<i32>().unwrap())
-                    .map(|n| DayOne::get_fuel_required_using_mass(n))
-                    .sum();
-
-                println!("Fuel sum: {fuel_sum}");
-            }
-            PuzzleType::PartTwo => {
-                let fuel_sum: i32 = input.puzzle_input.split('\n')
-                    .map(|x| x.parse::<i32>().unwrap())
-                    .map(|n| DayOne::get_fuel_required_using_mass_bonus(n))
-                    .sum();
-
-                println!("Fuel sum: {fuel_sum}");
-            }
+        match solver(&puzzle) {
+            (None, None) => println!("No puzzle solved for day {}!", day),
+            (Some(v), None) => println!(""),
+            (None, Some(v)) => println!(""),
+            (Some(a), Some(b)) => println!("")
         }
     }
-}
 
-
-fn main() {
-
-    let puzzle = DayOne::new();
-    puzzle.solve(PuzzleType::PartOne);
-    puzzle.solve(PuzzleType::PartTwo);
+    Ok(())
 }
