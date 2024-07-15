@@ -1,7 +1,16 @@
 use std::{env, fs, io};
 
+enum PuzzlePart {
+    ONE,
+    TWO
+}
+
+trait Solveable {
+    fn solve(&self, part: &Puzzle) -> String;
+}
 
 struct Puzzle {
+    day: i16,
     text: String,
 }
 
@@ -13,41 +22,40 @@ impl Puzzle {
             .join("day".to_string() + &day.to_string() + &".txt");
 
         let text = fs::read_to_string(path)?;
-        Ok(Self { text })
+        Ok(Self { day, text })
     }
 }
 
+struct Day01 {
+    puzzle: Puzzle
+}
+
+impl Solveable for Day01 {
+    fn solve(&self, part: &Puzzle) -> String {
+        String::from("puzzle1")
+    }
+}
+
+struct Day02 {
+    puzzle: Puzzle
+}
+
+impl Solveable for Day02 {
+    fn solve(&self, part: &Puzzle) -> String {
+        String::from("puzzle2")
+    }
+}
+
+enum Day {
+    One(Day01),
+    Two(Day02)
+}
 
 type SolveResult = (Option<String>, Option<String>);
 type Solver = fn(&Puzzle) -> SolveResult;
 
 fn solve_day_one(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
-
-    fn part_one(p: &Puzzle) -> Option<String> {
-        let s = p
-            .text
-            .split_terminator('\n')
-            .fold(0, |acc, x| acc + ((x.parse::<f64>().unwrap() / 3.0).floor() as u64 - 2));
-        
-        Some(s.to_string())
-    }
-
-    fn part_two(p: &Puzzle) -> Option<String> {
-
-        fn reduce(a: i64, n: i64) -> i64 {
-            let x = (n as f64 / 3.0).floor() as i64 - 2;
-            if x < 0 { a } else { reduce(a + x, x) }
-        }
-
-        let s = p
-            .text
-            .split_terminator('\n')
-            .fold(0, |acc, x| acc + reduce(0, x.parse().unwrap()));
-
-        Some(s.to_string())
-    }
-
-    (part_one(&puzzle), part_two(&puzzle))
+    (None, None)
 }
 
 fn solve_day_two(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
@@ -55,25 +63,25 @@ fn solve_day_two(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
 }
 
 fn main() -> Result<(), io::Error>{
+
+    // if no arguments are passed then run all
+
+    // else only execute the days passed via the command line
+
     let solvers: Vec<Solver> = vec![
         solve_day_one,
         solve_day_two
     ];
-    let mut last_day = 2;
-    let args: Vec<_> = env::args().collect();
-    if args.len() > 1 {
-        last_day = args[1].parse::<i16>().unwrap();
-    }
-    let day_range = 1..=last_day;
+    let day_range = 1..=2;
 
     for (day, solver) in day_range.zip(solvers) {
         let puzzle = Puzzle::from_puzzle_file(day)?;
         
         match solver(&puzzle) {
             (None, None) => println!("No puzzle solved for day {}!", day),
-            (Some(v), None) => println!("Part one: {}", v),
-            (None, Some(v)) => println!("Part two: {}", v),
-            (Some(a), Some(b)) => println!("Part one: {}\nPart two: {}", a, b)
+            (Some(v), None) => println!(""),
+            (None, Some(v)) => println!(""),
+            (Some(a), Some(b)) => println!("")
         }
     }
 
