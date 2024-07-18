@@ -51,7 +51,38 @@ fn solve_day_one(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
 }
 
 fn solve_day_two(puzzle: &Puzzle) -> (Option<String>, Option<String>) {
-    (None, None)
+
+    fn part_one(p: &Puzzle) -> Option<String> {
+        let mut numbers = p
+            .text
+            .split_terminator(',')
+            .map(|x| x.parse::<u64>().unwrap())
+            .collect::<Vec<_>>();
+
+        numbers[1] = 12;
+        numbers[2] = 2;
+        for i in 0..numbers.len() {
+            if i % 4 > 0 {
+                continue;
+            }
+            let index_a = i + 1;
+            let index_b = i + 2;
+            let index_c = i + 3;
+            if numbers[index_c] == 0 {
+                println!("[{}] {}", i, numbers[i]);
+            }
+            match numbers[i] {
+                99 => break,
+                1 => numbers[index_c] = numbers[index_a] + numbers[index_b],
+                2 => numbers[index_c] = numbers[index_a] * numbers[index_b],
+                _ => panic!("Unknown number")
+            }
+        }
+
+        Some(numbers[0].to_string())
+    }
+
+    (part_one(&puzzle), None)
 }
 
 fn main() -> Result<(), io::Error>{
@@ -71,9 +102,9 @@ fn main() -> Result<(), io::Error>{
         
         match solver(&puzzle) {
             (None, None) => println!("No puzzle solved for day {}!", day),
-            (Some(v), None) => println!("Part one: {}", v),
-            (None, Some(v)) => println!("Part two: {}", v),
-            (Some(a), Some(b)) => println!("Part one: {}\nPart two: {}", a, b)
+            (Some(v), None) => println!("[{}] Part one: {}", day, v),
+            (None, Some(v)) => println!("[{}] Part two: {}", day, v),
+            (Some(a), Some(b)) => println!("[{}] Part one: {}\n[{}] Part two: {}", day, a, day, b)
         }
     }
 
